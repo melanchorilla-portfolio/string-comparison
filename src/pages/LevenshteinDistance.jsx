@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { Button, Textarea } from "flowbite-react";
+import React, { useState, useEffect } from "react";
 
 function LevenshteinDistance() {
-  const [paragraph1, setParagraph1] = useState('');
+  const [paragraph1, setParagraph1] = useState("");
   const [scores, setScores] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [englishDictionary, setEnglishDictionary] = useState({ words: [] });
@@ -36,11 +37,13 @@ function LevenshteinDistance() {
   // Function to load English dictionary from JSON file
   async function loadDictionary() {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/words.json`);
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/words.json`
+      );
       const data = await response.json();
       setEnglishDictionary(data);
     } catch (error) {
-      console.error('Error loading dictionary:', error);
+      console.error("Error loading dictionary:", error);
     }
   }
 
@@ -57,7 +60,7 @@ function LevenshteinDistance() {
     const words1 = paragraph1.split(/\s+/);
     for (const word1 of words1) {
       let minDistance = Infinity;
-      let suggestion = '';
+      let suggestion = "";
       for (const word2 of englishDictionary.words) {
         const distance = levenshteinDistance(word1, word2);
         if (distance < minDistance) {
@@ -65,31 +68,40 @@ function LevenshteinDistance() {
           suggestion = word2;
         }
       }
-      const similarity = 1 - minDistance / Math.max(word1.length, suggestion.length);
+      const similarity =
+        1 - minDistance / Math.max(word1.length, suggestion.length);
       scoresArray.push(similarity.toFixed(2));
-      suggestionsArray.push(similarity < 1.00 ? suggestion : '');
+      suggestionsArray.push(similarity < 1.0 ? suggestion : "");
     }
     setScores(scoresArray);
     setSuggestions(suggestionsArray);
   }
 
   return (
-    <div>
-      <h2>Levenshtein Distance Similarity Calculator</h2>
-      <form onSubmit={handleSubmit}>
-        <textarea
-          placeholder="Enter paragraph 1"
+    <div className="container px-28 h-[80vh]">
+      <h2 className="text-center font-semibold sm:text-xl md:text-2xl mt-5">
+        Levenshtein Distance Similarity Calculator
+      </h2>
+      <form className="mt-5" onSubmit={handleSubmit}>
+        <Textarea
+          placeholder="Enter paragraph"
+          required
+          rows={4}
           value={paragraph1}
           onChange={(e) => setParagraph1(e.target.value)}
         />
-        <button type="submit">Check Similarity</button>
+        <div className="mt-5 flex justify-center">
+          <Button color="blue" type="submit">
+            Check Similarity
+          </Button>
+        </div>
       </form>
       <div>
         {scores.map((score, index) => (
           <div key={index}>
             <span>Score: {score}</span>
             {suggestions[index] && (
-              <span style={{ marginLeft: '10px' }}>
+              <span style={{ marginLeft: "10px" }}>
                 Do you mean: {suggestions[index]}?
               </span>
             )}
