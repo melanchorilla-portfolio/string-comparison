@@ -1,8 +1,8 @@
 import MainLayout from "./layouts/MainLayout";
 import About from "./pages/About";
 import Home from "./pages/Home";
-import LevenshteinDistance from "./pages/LevenshteinDistance";
-import JaroWinklerDistance from "./pages/JaroWinklerDistance";
+import JaroWinklerDistanceVoice from "./pages/JaroWinklerDistanceVoice";
+import LevenshteinDistanceVoice from "./pages/LevenshteinDistanceVoice";
 import { Routes, Route } from "react-router-dom";
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
           path="/jaro-winkler"
           element={
             <MainLayout>
-              <JaroWinklerDistance />
+              <JaroWinklerDistanceVoice />
             </MainLayout>
           }
         />
@@ -37,7 +37,7 @@ function App() {
           path="/levenshtein"
           element={
             <MainLayout>
-              <LevenshteinDistance />
+              <LevenshteinDistanceVoice />
             </MainLayout>
           }
         />

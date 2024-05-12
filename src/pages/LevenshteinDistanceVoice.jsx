@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
 import { Button, Textarea } from "flowbite-react";
+import React, { useState, useEffect } from "react";
 
-function JaroWinklerDistance() {
+function LevenshteinDistance() {
   const [paragraph1, setParagraph1] = useState("");
   const [scores, setScores] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [englishDictionary, setEnglishDictionary] = useState({ words: [] });
+
   const [isRecording, setIsRecording] = useState(false); // New state for recording status
 
   let recognition = null;
@@ -49,7 +50,6 @@ function JaroWinklerDistance() {
     }
   }
 
-
   function startRecording() {
     setIsRecording(true);
     recognition.start();
@@ -59,68 +59,50 @@ function JaroWinklerDistance() {
     setIsRecording(false);
     recognition.stop();
   }
-
-  // Function to calculate Jaro-Winkler distance
-  function jaroWinklerDistance(s1, s2) {
-    s1 = s1.toLowerCase();
-    s2 = s2.toLowerCase();
-
+  // Function to calculate Levenshtein distance
+  function levenshteinDistance(s1, s2) {
     const m = s1.length;
     const n = s2.length;
 
-    // Return 1 if both strings are identical
-    if (s1 === s2) return 1;
+    const dp = [];
+    for (let i = 0; i <= m; i++) {
+      dp[i] = [i];
+    }
+    for (let j = 0; j <= n; j++) {
+      dp[0][j] = j;
+    }
 
-    // Exit if either of the strings is empty
-    if (m === 0 || n === 0) return 0;
-
-    // Matching distance threshold
-    const matchDistance = Math.floor(Math.max(m, n) / 2) - 1;
-
-    // Arrays to mark if a character is matched
-    const s1Matches = new Array(m).fill(false);
-    const s2Matches = new Array(n).fill(false);
-
-    // Count of matched characters
-    let matches = 0;
-
-    // Count of transpositions
-    let transpositions = 0;
-
-    // Count of prefix similarity
-    let prefix = 0;
-
-    // Iterate over the first string
-    for (let i = 0; i < m; i++) {
-      const start = Math.max(0, i - matchDistance);
-      const end = Math.min(i + matchDistance + 1, n);
-
-      // Iterate over the second string
-      for (let j = start; j < end; j++) {
-        if (!s2Matches[j] && s1[i] === s2[j]) {
-          s1Matches[i] = true;
-          s2Matches[j] = true;
-          matches++;
-          if (i === j) transpositions++;
-          break;
-        }
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + cost
+        );
       }
     }
 
-    // Count the prefix similarity
-    let k = 0;
-    while (k < m && s1[k] === s2[k] && k < 4) {
-      prefix++;
-      k++;
-    }
-
-    // Return Jaro similarity with Winkler modification
-    return (
-      (matches / m + matches / n + (matches - transpositions / 2) / matches) /
-        3 +
-      (prefix > 0.1 ? prefix * 0.1 * (1 - matches / m) : 0)
-    );
+    return dp[m][n];
   }
+
+  // Function to load English dictionary from JSON file
+  async function loadDictionary() {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/words.json`
+      );
+      const data = await response.json();
+      setEnglishDictionary(data);
+    } catch (error) {
+      console.error("Error loading dictionary:", error);
+    }
+  }
+
+  // Load English dictionary when component mounts
+  useEffect(() => {
+    loadDictionary();
+  }, []);
 
   // Function to handle form submit and calculate similarity
   function handleSubmit(event) {
@@ -129,17 +111,19 @@ function JaroWinklerDistance() {
     const suggestionsArray = [];
     const words1 = paragraph1.split(/\s+/);
     for (const word1 of words1) {
-      let maxScore = 0;
+      let minDistance = Infinity;
       let suggestion = "";
       for (const word2 of englishDictionary.words) {
-        const similarity = jaroWinklerDistance(word1, word2);
-        if (similarity > maxScore) {
-          maxScore = similarity;
+        const distance = levenshteinDistance(word1, word2);
+        if (distance < minDistance) {
+          minDistance = distance;
           suggestion = word2;
         }
       }
-      scoresArray.push(maxScore.toFixed(2));
-      suggestionsArray.push(maxScore < 1.0 ? suggestion : "");
+      const similarity =
+        1 - minDistance / Math.max(word1.length, suggestion.length);
+      scoresArray.push(similarity.toFixed(2));
+      suggestionsArray.push(similarity < 1.0 ? suggestion : "");
     }
     setScores(scoresArray);
     setSuggestions(suggestionsArray);
@@ -148,7 +132,7 @@ function JaroWinklerDistance() {
   return (
     <div className="container px-28 h-[80vh]">
       <h2 className="text-center font-semibold sm:text-xl md:text-2xl mt-5">
-        Jaro-Winkler Similarity Calculator
+        Levenshtein Distance Similarity Calculator
       </h2>
       <form className="mt-5" onSubmit={handleSubmit}>
         <Textarea
@@ -186,4 +170,4 @@ function JaroWinklerDistance() {
   );
 }
 
-export default JaroWinklerDistance;
+export default LevenshteinDistance;
