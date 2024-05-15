@@ -116,6 +116,17 @@ function JaroWinklerDistance() {
     setProcessingTime(endTime - startTime); // Calculate processing time
   }
 
+  function handleSaveToLocalStorage() {
+    const dataToStore = {
+      scores,
+      words: paragraph1.split(/\s+/),
+      suggestions,
+      processingTime
+    };
+    localStorage.setItem('jaroWinklerData', JSON.stringify(dataToStore));
+    alert('Results and suggestions stored in localStorage!');
+  }
+
   return (
     <div className="container px-28 h-[80vh]">
       <h2 className="text-center font-semibold sm:text-xl md:text-2xl mt-5">
@@ -138,6 +149,9 @@ function JaroWinklerDistance() {
           </Button>
           <Button color="blue" type="submit" disabled={isRecording}>
             Check Similarity
+          </Button>
+          <Button color="green" onClick={handleSaveToLocalStorage}>
+            Save Results
           </Button>
         </div>
       </form>
