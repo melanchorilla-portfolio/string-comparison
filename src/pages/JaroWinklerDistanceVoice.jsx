@@ -6,25 +6,22 @@ function JaroWinklerDistance() {
   const [scores, setScores] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [englishDictionary, setEnglishDictionary] = useState({ words: [] });
-  const [isRecording, setIsRecording] = useState(false); // New state for recording status
+  const [isRecording, setIsRecording] = useState(false);
+  const [processingTime, setProcessingTime] = useState(0); // State to store processing time
 
   let recognition = null;
 
   if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
-    // Create speech recognition object
-    recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
-    recognition.lang = "en-US"; // Set language
-    recognition.continuous = false; // Set continuous listening to false
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.continuous = false;
 
-    // Event listener for when speech recognition gets a result
     recognition.onresult = function (event) {
       const transcript = event.results[0][0].transcript;
       setParagraph1(transcript);
       setIsRecording(false);
     };
 
-    // Event listener for speech recognition errors
     recognition.onerror = function (event) {
       console.error("Speech recognition error:", event.error);
       setIsRecording(false);
@@ -39,16 +36,13 @@ function JaroWinklerDistance() {
 
   async function loadDictionary() {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/words.json`
-      );
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/words.json`);
       const data = await response.json();
       setEnglishDictionary(data);
     } catch (error) {
       console.error("Error loading dictionary:", error);
     }
   }
-
 
   function startRecording() {
     setIsRecording(true);
@@ -60,42 +54,22 @@ function JaroWinklerDistance() {
     recognition.stop();
   }
 
-  // Function to calculate Jaro-Winkler distance
   function jaroWinklerDistance(s1, s2) {
     s1 = s1.toLowerCase();
     s2 = s2.toLowerCase();
-
     const m = s1.length;
     const n = s2.length;
-
-    // Return 1 if both strings are identical
     if (s1 === s2) return 1;
-
-    // Exit if either of the strings is empty
     if (m === 0 || n === 0) return 0;
-
-    // Matching distance threshold
     const matchDistance = Math.floor(Math.max(m, n) / 2) - 1;
-
-    // Arrays to mark if a character is matched
     const s1Matches = new Array(m).fill(false);
     const s2Matches = new Array(n).fill(false);
-
-    // Count of matched characters
     let matches = 0;
-
-    // Count of transpositions
     let transpositions = 0;
-
-    // Count of prefix similarity
     let prefix = 0;
-
-    // Iterate over the first string
     for (let i = 0; i < m; i++) {
       const start = Math.max(0, i - matchDistance);
       const end = Math.min(i + matchDistance + 1, n);
-
-      // Iterate over the second string
       for (let j = start; j < end; j++) {
         if (!s2Matches[j] && s1[i] === s2[j]) {
           s1Matches[i] = true;
@@ -106,25 +80,20 @@ function JaroWinklerDistance() {
         }
       }
     }
-
-    // Count the prefix similarity
     let k = 0;
     while (k < m && s1[k] === s2[k] && k < 4) {
       prefix++;
       k++;
     }
-
-    // Return Jaro similarity with Winkler modification
     return (
-      (matches / m + matches / n + (matches - transpositions / 2) / matches) /
-        3 +
+      (matches / m + matches / n + (matches - transpositions / 2) / matches) / 3 +
       (prefix > 0.1 ? prefix * 0.1 * (1 - matches / m) : 0)
     );
   }
 
-  // Function to handle form submit and calculate similarity
   function handleSubmit(event) {
     event.preventDefault();
+    const startTime = Date.now(); // Start time
     const scoresArray = [];
     const suggestionsArray = [];
     const words1 = paragraph1.split(/\s+/);
@@ -143,6 +112,8 @@ function JaroWinklerDistance() {
     }
     setScores(scoresArray);
     setSuggestions(suggestionsArray);
+    const endTime = Date.now(); // End time
+    setProcessingTime(endTime - startTime); // Calculate processing time
   }
 
   return (
@@ -181,6 +152,7 @@ function JaroWinklerDistance() {
             )}
           </div>
         ))}
+        <div>Processing Time: {processingTime} ms</div>
       </div>
     </div>
   );

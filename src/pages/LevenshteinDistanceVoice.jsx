@@ -6,6 +6,7 @@ function LevenshteinDistance() {
   const [scores, setScores] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [englishDictionary, setEnglishDictionary] = useState({ words: [] });
+  const [processingTime, setProcessingTime] = useState(0); // State to store processing time
 
   const [isRecording, setIsRecording] = useState(false); // New state for recording status
 
@@ -59,7 +60,7 @@ function LevenshteinDistance() {
     setIsRecording(false);
     recognition.stop();
   }
-  // Function to calculate Levenshtein distance
+
   function levenshteinDistance(s1, s2) {
     const m = s1.length;
     const n = s2.length;
@@ -86,27 +87,10 @@ function LevenshteinDistance() {
     return dp[m][n];
   }
 
-  // Function to load English dictionary from JSON file
-  async function loadDictionary() {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/words.json`
-      );
-      const data = await response.json();
-      setEnglishDictionary(data);
-    } catch (error) {
-      console.error("Error loading dictionary:", error);
-    }
-  }
-
-  // Load English dictionary when component mounts
-  useEffect(() => {
-    loadDictionary();
-  }, []);
-
-  // Function to handle form submit and calculate similarity
   function handleSubmit(event) {
     event.preventDefault();
+    const startTime = performance.now(); // Start timing
+
     const scoresArray = [];
     const suggestionsArray = [];
     const words1 = paragraph1.split(/\s+/);
@@ -125,6 +109,10 @@ function LevenshteinDistance() {
       scoresArray.push(similarity.toFixed(2));
       suggestionsArray.push(similarity < 1.0 ? suggestion : "");
     }
+
+    const endTime = performance.now(); // End timing
+    setProcessingTime(endTime - startTime); // Calculate and set processing time
+
     setScores(scoresArray);
     setSuggestions(suggestionsArray);
   }
@@ -165,6 +153,7 @@ function LevenshteinDistance() {
             )}
           </div>
         ))}
+        <div>Processing Time: {processingTime.toFixed(0)} ms</div>
       </div>
     </div>
   );
