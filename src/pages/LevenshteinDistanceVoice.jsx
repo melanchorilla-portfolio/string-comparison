@@ -160,7 +160,7 @@ function LevenshteinDistance() {
       <div>
         {scores.map((score, index) => (
           <div key={index}>
-            <span>Score: {score}</span>
+            <span><strong>Word:</strong> {paragraph1.split(/\s+/)[index]}, <strong>Score:</strong> {score}</span>
             {suggestions[index] && (
               <span style={{ marginLeft: "10px" }}>
                 Do you mean: {suggestions[index]}?

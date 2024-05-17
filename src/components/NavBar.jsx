@@ -17,6 +17,7 @@ export function NavBar() {
         </Navbar.Link>
         <Navbar.Link as={Link} to="/jaro-winkler">Jaro Winkler</Navbar.Link>
         <Navbar.Link as={Link} to="/levenshtein">Levenshtein</Navbar.Link>
+        <Navbar.Link as={Link} to="/graph-comparison">Graph comparison</Navbar.Link>
       </Navbar.Collapse>
     </Navbar>
   );
